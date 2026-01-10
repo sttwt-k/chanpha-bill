@@ -16,12 +16,13 @@ import {
 
 // --- 🔴 ส่วนตั้งค่า FIREBASE (ใส่ค่า Config ของคุณตรงนี้) ---
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSyCj5ZWEVjQJC9DM3X2oTacbbkSXYPXopNQ",
+  authDomain: "chanpha-bill-db.firebaseapp.com",
+  projectId: "chanpha-bill-db",
+  storageBucket: "chanpha-bill-db.firebasestorage.app",
+  messagingSenderId: "839581764938",
+  appId: "1:839581764938:web:c9c0865febcc9ffdab05b3",
+  measurementId: "G-NSVB9G7S6R"
 };
 
 // Initialize Firebase
