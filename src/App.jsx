@@ -16,13 +16,12 @@ import {
 
 // --- 🔴 ส่วนตั้งค่า FIREBASE (ใส่ค่า Config ของคุณตรงนี้) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyCj5ZWEVjQJC9DM3X2oTacbbkSXYPXopNQ",
-  authDomain: "chanpha-bill-db.firebaseapp.com",
-  projectId: "chanpha-bill-db",
-  storageBucket: "chanpha-bill-db.firebasestorage.app",
-  messagingSenderId: "839581764938",
-  appId: "1:839581764938:web:c9c0865febcc9ffdab05b3",
-  measurementId: "G-NSVB9G7S6R"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
 };
 
 // Initialize Firebase
@@ -306,15 +305,13 @@ export default function App() {
     }
   };
 
-  // --- Handlers ---
-
-  const initTransactionForm = (transaction, typeOverride) => {
+  const initTransactionForm = (transaction) => {
     if (transaction) {
       setFormData(transaction);
       setEditingId(transaction.id);
       setUseVatCalc(!!transaction.vatAmount && transaction.vatAmount > 0);
     } else {
-      const currentType = typeOverride || (activeTab === 'income' ? 'income' : activeTab === 'expense' ? 'expense' : 'transfer');
+      const currentType = (activeTab === 'income' ? 'income' : activeTab === 'expense' ? 'expense' : 'transfer');
       const compatibleAccount = accounts.find(a => a.type === 'cash');
       
       setFormData({
@@ -325,7 +322,7 @@ export default function App() {
         amount: 0,
         preTaxAmount: 0,
         vatAmount: 0,
-        category: currentType === 'transfer' ? 'โอนเงิน/ชำระหนี้' : categories[currentType][0],
+        category: currentType === 'transfer' ? 'โอนเงิน/ชำระหนี้' : categories[currentType]?.[0] || 'อื่นๆ',
         description: currentType === 'transfer' ? 'โอนเงินระหว่างบัญชี' : '',
         billNo: generateBillNo(currentType),
         accountId: compatibleAccount?.id || '',
@@ -513,7 +510,6 @@ export default function App() {
     }
   };
 
-  // --- Export ---
   const exportToCSV = (filterType) => {
     const dataToExport = transactions.filter(t => t.date.startsWith(selectedMonth) && (filterType === 'all' ? true : t.type === filterType));
     const headers = ["Type", "Date", "Bill No", "Original Bill", "Payee", "Description", "Category", "Amount", "Account", "Status"];
@@ -527,8 +523,6 @@ export default function App() {
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
 
-  // --- Derived Data ---
-  
   const filteredTransactions = transactions
     .filter(t => t.date.startsWith(selectedMonth))
     .filter(t => showPendingOnly ? t.status === 'pending' : true)
@@ -618,8 +612,6 @@ export default function App() {
            </div>
         )}
 
-        {/* ... (All other components follow below, essentially the same structure but without types) */}
-        
         {/* === WALLETS TAB === */}
         {activeTab === 'wallets' && (
           <div className="animate-in fade-in">
