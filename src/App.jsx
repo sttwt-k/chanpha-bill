@@ -443,7 +443,15 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [theme, setTheme] = useState('light');
-  const [viewMode, setViewMode] = useState('mobile');
+  
+  // --- Updated: Initialize viewMode based on screen width ---
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768 ? 'desktop' : 'mobile';
+    }
+    return 'mobile';
+  });
+
   const [fontSizeLevel, setFontSizeLevel] = useState(1); 
   const [authError, setAuthError] = useState(null);
    
@@ -1229,7 +1237,7 @@ export default function App() {
               <button onClick={() => setFormData({_mode: 'type_select'})} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2"><PlusIcon size={20}/> ทำรายการ</button>
           </aside>
 
-          <main className={`flex-1 transition-all duration-300 ${viewMode === 'mobile' ? 'max-w-md mx-auto bg-white dark:bg-gray-900 shadow-2xl min-h-screen relative pb-24' : 'md:ml-64 p-8'}`}>
+          <main className={`flex-1 transition-all duration-300 ${viewMode === 'mobile' ? 'w-full md:max-w-md mx-auto bg-white dark:bg-gray-900 shadow-2xl min-h-screen relative pb-24' : 'md:ml-64 p-8'}`}>
              <div className={`sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800 ${viewMode==='desktop'?'hidden md:flex bg-transparent border-none':''}`}>
                  <div className={`flex items-center gap-2 ${viewMode === 'desktop' ? 'md:hidden' : ''}`}><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div><h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
                  <div className="flex gap-2">
