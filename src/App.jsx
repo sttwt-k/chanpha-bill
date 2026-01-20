@@ -19,7 +19,7 @@ import {
 // --- Firebase Imports ---
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
-  getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken
+  getAuth, signInAnonymously, onAuthStateChanged 
 } from 'firebase/auth';
 import { 
   getFirestore, collection, query, limit, 
@@ -27,29 +27,20 @@ import {
 } from 'firebase/firestore';
 
 // --- 🔴 Firebase Configuration ---
-let firebaseConfig;
-try {
-  // Try to use environment config if available to prevent token mismatch
-  firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-} catch (e) {
-  console.log("Using hardcoded config");
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyCj5ZWEVjQJC9DM3X2oTacbbkSXYPXopNQ",
+  authDomain: "chanpha-bill-db.firebaseapp.com",
+  projectId: "chanpha-bill-db",
+  storageBucket: "chanpha-bill-db.firebasestorage.app",
+  messagingSenderId: "839581764938",
+  appId: "1:839581764938:web:c9c0865febcc9ffdab05b3",
+  measurementId: "G-NSVB9G7S6R"
+};
 
-if (!firebaseConfig) {
-  firebaseConfig = {
-    apiKey: "AIzaSyCj5ZWEVjQJC9DM3X2oTacbbkSXYPXopNQ",
-    authDomain: "chanpha-bill-db.firebaseapp.com",
-    projectId: "chanpha-bill-db",
-    storageBucket: "chanpha-bill-db.firebasestorage.app",
-    messagingSenderId: "839581764938",
-    appId: "1:839581764938:web:c9c0865febcc9ffdab05b3",
-    measurementId: "G-NSVB9G7S6R"
-  };
-}
+// Use projectId as path identifier to keep it clean
+const appId = firebaseConfig.projectId; 
 
-// Use environment app_id if available, otherwise fallback to projectId
-const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-
+// Initialize Firebase with Error Handling
 let app;
 let auth;
 let db;
@@ -151,21 +142,22 @@ const TransactionFormModal = memo(({
   }
 
   let catList = [];
+  let filteredPartners = [];
   let partnerLabel = "ชื่อ (Partner)";
 
-  // Logic to determine category list and partner type filter
   if(formData.type === 'investment') {
       catList = categories.investTypes || [];
   } else if(['income','debt_collection'].includes(formData.type)) {
       catList = categories.income;
+      filteredPartners = partners.filter(p => p.type === 'debtor');
       partnerLabel = "ชื่อ (ลูกหนี้)";
   } else {
       catList = categories.expense;
+      filteredPartners = partners.filter(p => p.type === 'creditor');
       partnerLabel = "ชื่อ (เจ้าหนี้)";
   }
 
-  // Combine saved partners with history for datalist
-  const partnerOptions = partnerList.map((p, i) => <option key={i} value={p}/>);
+  const partnerOptions = filteredPartners.map((p, i) => <option key={i} value={p.name}/>);
 
   const calculateInvestTotal = () => {
       const total = (Number(formData.pricePerUnit)||0) * (Number(formData.quantity)||0);
@@ -487,7 +479,6 @@ export default function App() {
   const [sortKey, setSortKey] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
 
-  // Memoize these calculations once in the component body
   const partnerList = useMemo(() => [...new Set(transactions.map(t => t.partyName).filter(Boolean)), ...partners.map(p => p.name)], [transactions, partners]);
   const assetList = useMemo(() => [...new Set(transactions.filter(t => t.type === 'investment').map(t => t.assetName).filter(Boolean))], [transactions]);
 
@@ -497,19 +488,10 @@ export default function App() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-            await signInAnonymously(auth);
-        }
+        await signInAnonymously(auth);
       } catch (error) {
         console.error("Auth Error:", error);
-        // Fallback to anonymous auth if custom token fails (e.g. mismatch)
-        try {
-            await signInAnonymously(auth);
-        } catch(anonErr) {
-            setAuthError(anonErr.message);
-        }
+        setAuthError(error.message);
       }
     };
     initAuth();
@@ -519,11 +501,11 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const userId = user.uid;
-    const unsubTrans = onSnapshot(query(collection(db, 'artifacts', appId, 'users', userId, 'transactions'), orderBy('date', 'desc'), limit(2000)), (s) => setTransactions(s.docs.map(d => ({id: d.id, ...d.data()}))), (e) => console.error("Trans Sync Error:", e));
-    const unsubAcc = onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'accounts'), (s) => setAccounts(s.docs.map(d => ({id: d.id, ...d.data()}))), (e) => console.error("Acc Sync Error:", e));
-    const unsubPart = onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'partners'), (s) => setPartners(s.docs.map(d => ({id: d.id, ...d.data()}))), (e) => console.error("Part Sync Error:", e));
-    const unsubPort = onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'portfolios'), (s) => setPortfolios(s.docs.map(d => ({id: d.id, ...d.data()}))), (e) => console.error("Port Sync Error:", e));
-    const unsubCat = onSnapshot(doc(db, 'artifacts', appId, 'users', userId, 'settings', 'custom_categories'), (s) => { if (s.exists()) setCategories(s.data()); }, (e) => console.error("Cat Sync Error:", e));
+    const unsubTrans = onSnapshot(query(collection(db, 'artifacts', appId, 'users', userId, 'transactions'), orderBy('date', 'desc'), limit(2000)), (s) => setTransactions(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubAcc = onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'accounts'), (s) => setAccounts(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubPart = onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'partners'), (s) => setPartners(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubPort = onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'portfolios'), (s) => setPortfolios(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubCat = onSnapshot(doc(db, 'artifacts', appId, 'users', userId, 'settings', 'custom_categories'), (s) => { if (s.exists()) setCategories(s.data()); });
     return () => { unsubTrans(); unsubAcc(); unsubPart(); unsubPort(); unsubCat(); };
   }, [user]);
 
@@ -574,9 +556,7 @@ export default function App() {
 
     if (!finalAmount && finalAmount !== 0) return;
 
-    // Clean payload (remove _mode)
-    const { _mode, ...cleanData } = data;
-    const payload = { ...cleanData, amount: finalAmount, date: data.date, status: 'completed', docNo: data.id ? data.docNo : generateDocNo(data.type, data.date), updatedAt: new Date() };
+    const payload = { ...data, amount: finalAmount, date: data.date, status: 'completed', docNo: data.id ? data.docNo : generateDocNo(data.type, data.date), updatedAt: new Date() };
     if (!data.id) payload.createdAt = new Date();
 
     try {
@@ -631,8 +611,8 @@ export default function App() {
       const { type, name, icon, color } = categoryFormData;
       const newCat = { name, icon, color };
       const updatedCats = { ...categories, [type]: [...(categories[type]||[]), newCat] };
-      // NOTE: Do not call setCategories here manually to prevent sync issues. Let onSnapshot handle it.
       await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'custom_categories'), updatedCats);
+      setCategories(updatedCats);
       setShowCategoryModal(false); setCategoryFormData({});
   };
 
@@ -640,6 +620,7 @@ export default function App() {
       const updatedList = categories[type].filter(c => (c.name || c) !== name);
       const updatedCats = { ...categories, [type]: updatedList };
       await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'custom_categories'), updatedCats);
+      setCategories(updatedCats);
   };
 
   const handleSaveAccount = async () => {
@@ -714,12 +695,6 @@ export default function App() {
 
      const totalNetWorth = accounts.reduce((a,c) => c.type!=='credit' ? a+c.balance : a, 0) + transactions.filter(t => t.type === 'investment').reduce((acc, t) => acc + (t.subType === 'buy' ? t.amount : -t.amount), 0);
 
-     const handleMonthChange = (offset) => {
-        const newDate = new Date(selectedDate);
-        newDate.setMonth(newDate.getMonth() + offset);
-        setSelectedDate(newDate);
-     };
-
      return (
        <div className={`space-y-6 animate-in fade-in pb-24 ${fontSizeClass}`}>
           {authError && (
@@ -737,9 +712,9 @@ export default function App() {
              </div>
              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm" onClick={e=>e.stopPropagation()}>
                  <div className="grid grid-cols-3 gap-2 text-center">
-                     <div><span className="text-[10px] text-emerald-400 block">รายรับ</span><span className="font-bold text-sm text-emerald-300">+{daySummary.inc.toLocaleString()}</span></div>
-                     <div className="border-l border-white/10"><span className="text-[10px] text-rose-400 block">รายจ่าย</span><span className="font-bold text-sm text-rose-300">-{daySummary.exp.toLocaleString()}</span></div>
-                     <div className="border-l border-white/10"><span className="text-[10px] text-amber-400 block">ลงทุน</span><span className="font-bold text-sm text-amber-300">{daySummary.inv.toLocaleString()}</span></div>
+                      <div><span className="text-[10px] text-emerald-400 block">รายรับ</span><span className="font-bold text-sm text-emerald-300">+{daySummary.inc.toLocaleString()}</span></div>
+                      <div className="border-l border-white/10"><span className="text-[10px] text-rose-400 block">รายจ่าย</span><span className="font-bold text-sm text-rose-300">-{daySummary.exp.toLocaleString()}</span></div>
+                      <div className="border-l border-white/10"><span className="text-[10px] text-amber-400 block">ลงทุน</span><span className="font-bold text-sm text-amber-300">{daySummary.inv.toLocaleString()}</span></div>
                  </div>
              </div>
           </div>
@@ -748,20 +723,17 @@ export default function App() {
               <div className="flex justify-between items-center mb-4">
                  <h3 className="font-bold flex items-center gap-2 text-gray-800 dark:text-white"><CalendarIcon size={18} className="text-indigo-500"/> ปฏิทินการเงิน</h3>
                  <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                    <button onClick={() => handleMonthChange(-1)} className="p-1"><ChevronLeft size={16}/></button>
+                    <button onClick={() => setSelectedDate(new Date(selectedDate.setMonth(selectedDate.getMonth()-1)))} className="p-1"><ChevronLeft size={16}/></button>
                     <span className="px-2 font-bold w-24 text-center">{selectedDate.toLocaleDateString('th-TH', {month:'short', year:'2-digit'})}</span>
-                    <button onClick={() => handleMonthChange(1)} className="p-1"><ChevronLeft className="rotate-180" size={16}/></button>
+                    <button onClick={() => setSelectedDate(new Date(selectedDate.setMonth(selectedDate.getMonth()+1)))} className="p-1"><ChevronLeft className="rotate-180" size={16}/></button>
                  </div>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center">
                   {Array.from({length: new Date(selectedDate.getFullYear(), selectedDate.getMonth()+1, 0).getDate()}, (_,i)=>i+1).map(d => {
                       const stat = dailyData[d];
                       const isSelected = d === selectedDate.getDate();
-                      const clickDate = new Date(selectedDate);
-                      clickDate.setDate(d);
-                      
                       return (
-                        <div key={d} onClick={() => setSelectedDate(clickDate)} className={`aspect-square rounded-xl border flex flex-col items-center justify-center pt-1 cursor-pointer transition-all relative ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-50 dark:border-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                        <div key={d} onClick={() => setSelectedDate(new Date(selectedDate.setDate(d)))} className={`aspect-square rounded-xl border flex flex-col items-center justify-center pt-1 cursor-pointer transition-all relative ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-50 dark:border-gray-700 text-gray-800 dark:text-gray-200'}`}>
                            <span className="text-xs font-bold">{d}</span>
                            {stat && <div className="text-[8px] mt-1 flex flex-col leading-tight"><span className="text-emerald-500">{stat.inc>0?`+${(stat.inc/1000).toFixed(0)}k`:''}</span><span className="text-rose-500">{stat.exp>0?`-${(stat.exp/1000).toFixed(0)}k`:''}</span></div>}
                         </div>
@@ -796,8 +768,8 @@ export default function App() {
                          <p className="text-xs font-bold text-gray-400 uppercase">เงินสดและบัญชี</p>
                          {accounts.filter(a => a.type !== 'credit').map(a => (
                              <div key={a.id} className="flex justify-between text-sm">
-                                  <span>{a.name}</span>
-                                  <span className="font-bold text-emerald-600">฿{a.balance.toLocaleString()}</span>
+                                 <span>{a.name}</span>
+                                 <span className="font-bold text-emerald-600">฿{a.balance.toLocaleString()}</span>
                              </div>
                          ))}
                          <div className="border-t border-dashed my-2"></div>
@@ -890,18 +862,12 @@ export default function App() {
        return acc;
     }, {})).map(([name,value], i) => ({name, value, color: `hsl(${0 + i*30}, 70%, 50%)`})).sort((a,b)=>b.value-a.value);
 
-    const handleReportMonthChange = (offset) => {
-        const newDate = new Date(reportMonth);
-        newDate.setMonth(newDate.getMonth() + offset);
-        setReportMonth(newDate);
-    };
-
     return (
        <div className={`pb-24 animate-in fade-in space-y-6 ${fontSizeClass}`}>
           <div className="flex justify-center items-center gap-4 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm">
-             <button onClick={() => handleReportMonthChange(-1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"><ChevronLeft size={20}/></button>
+             <button onClick={() => setReportMonth(new Date(reportMonth.setMonth(reportMonth.getMonth()-1)))} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"><ChevronLeft size={20}/></button>
              <span className={`font-bold ${headerSizeClass} text-gray-800 dark:text-white`}>{reportMonth.toLocaleDateString('th-TH', {month:'long', year:'numeric'})}</span>
-             <button onClick={() => handleReportMonthChange(1)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"><ChevronLeft className="rotate-180" size={20}/></button>
+             <button onClick={() => setReportMonth(new Date(reportMonth.setMonth(reportMonth.getMonth()+1)))} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg"><ChevronLeft className="rotate-180" size={20}/></button>
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -1037,10 +1003,9 @@ export default function App() {
                let qty = 0;
                let cost = 0;
                txs.forEach(t => {
-                   if(t.subType === 'buy') { qty += (Number(t.quantity)||0); cost += Number(t.amount); }
-                   else { qty -= (Number(t.quantity)||0); cost -= Number(t.amount); }
+                   if(t.subType === 'buy') { qty += (t.quantity||0); cost += t.amount; }
+                   else { qty -= (t.quantity||0); cost -= t.amount; } // Simple cost reduction
                });
-               // Only show assets with positive quantity, safe division
                return { name: assetName, quantity: qty, totalCost: cost, avgCost: qty > 0 ? cost/qty : 0 };
           }).filter(a => a.quantity > 0);
 
@@ -1073,9 +1038,9 @@ export default function App() {
                               </div>
                               {/* Allocation Bar */}
                               <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                  <div className="bg-indigo-500 h-full rounded-full" style={{width: `${totalPortValue > 0 ? (asset.totalCost/totalPortValue)*100 : 0}%`}}></div>
+                                  <div className="bg-indigo-500 h-full rounded-full" style={{width: `${(asset.totalCost/totalPortValue)*100}%`}}></div>
                               </div>
-                              <p className="text-[10px] text-right mt-1 text-gray-400">{totalPortValue > 0 ? ((asset.totalCost/totalPortValue)*100).toFixed(1) : 0}%</p>
+                              <p className="text-[10px] text-right mt-1 text-gray-400">{((asset.totalCost/totalPortValue)*100).toFixed(1)}%</p>
                           </div>
                       ))}
                   </div>
@@ -1213,7 +1178,7 @@ export default function App() {
                                       {t}
                                       <button onClick={() => {
                                           const newTypes = categories.investTypes.filter(x => x !== t);
-                                          // NOTE: Let onSnapshot handle the update
+                                          setCategories({...categories, investTypes: newTypes});
                                           setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'custom_categories'), {...categories, investTypes: newTypes});
                                       }} className="text-red-400 hover:text-red-600 ml-1"><X size={12}/></button>
                                   </span>
@@ -1254,6 +1219,7 @@ export default function App() {
      );
   };
 
+  {/* Only returning App structure, Modals are rendered outside */}
   return (
     <div className={`min-h-screen font-sans antialiased ${theme} bg-gray-50 dark:bg-gray-950 text-slate-800 dark:text-gray-100`}>
        <div className={`flex flex-col md:flex-row min-h-screen transition-all`}>
@@ -1264,26 +1230,26 @@ export default function App() {
           </aside>
 
           <main className={`flex-1 transition-all duration-300 ${viewMode === 'mobile' ? 'max-w-md mx-auto bg-white dark:bg-gray-900 shadow-2xl min-h-screen relative pb-24' : 'md:ml-64 p-8'}`}>
-              <div className={`sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800 ${viewMode==='desktop'?'hidden md:flex bg-transparent border-none':''}`}>
-                  <div className="flex items-center gap-2 md:hidden"><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div><h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
-                  <div className="flex gap-2"><button onClick={() => setViewMode(v => v === 'mobile' ? 'desktop' : 'mobile')} className="p-2 text-gray-400 hover:text-indigo-600 hidden md:block"><Monitor size={20}/></button><button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} className="p-2 text-gray-400 hover:text-indigo-600"><Moon size={20}/></button></div>
-              </div>
+             <div className={`sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800 ${viewMode==='desktop'?'hidden md:flex bg-transparent border-none':''}`}>
+                 <div className="flex items-center gap-2 md:hidden"><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div><h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
+                 <div className="flex gap-2"><button onClick={() => setViewMode(v => v === 'mobile' ? 'desktop' : 'mobile')} className="p-2 text-gray-400 hover:text-indigo-600 hidden md:block"><Monitor size={20}/></button><button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} className="p-2 text-gray-400 hover:text-indigo-600"><Moon size={20}/></button></div>
+             </div>
 
-              <div className={`${viewMode==='mobile'?'p-4':'mt-4'}`}>
-                  {activeTab === 'overview' && <OverviewView />}
-                  {activeTab === 'transactions' && <TransactionsView />}
-                  {activeTab === 'data' && <DataView />}
-                  {activeTab === 'reports' && <ReportsView />}
-                  {activeTab === 'settings' && <SettingsView />}
-              </div>
+             <div className={`${viewMode==='mobile'?'p-4':'mt-4'}`}>
+                 {activeTab === 'overview' && <OverviewView />}
+                 {activeTab === 'transactions' && <TransactionsView />}
+                 {activeTab === 'data' && <DataView />}
+                 {activeTab === 'reports' && <ReportsView />}
+                 {activeTab === 'settings' && <SettingsView />}
+             </div>
 
-              <div className={`fixed bottom-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-6 flex justify-between items-end transition-all duration-300 md:hidden ${viewMode==='mobile'?'w-full max-w-md left-1/2 -translate-x-1/2':'w-full left-0'}`}>
-                  <button onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'overview' ? 'text-indigo-600' : 'text-gray-400'}`}><LayoutGrid size={24}/><span className="text-[10px]">ภาพรวม</span></button>
-                  <button onClick={() => setActiveTab('transactions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-gray-400'}`}><List size={24}/><span className="text-[10px]">รายการ</span></button>
-                  <div className="relative -top-6"><button onClick={() => setFormData({_mode: 'type_select'})} className="w-14 h-14 bg-slate-900 rounded-full text-white shadow-xl flex items-center justify-center transform active:scale-95"><PlusIcon size={28}/></button></div>
-                  <button onClick={() => setActiveTab('data')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'data' ? 'text-indigo-600' : 'text-gray-400'}`}><Database size={24}/><span className="text-[10px]">ข้อมูล</span></button>
-                  <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'settings' ? 'text-indigo-600' : 'text-gray-400'}`}><Settings size={24}/><span className="text-[10px]">ตั้งค่า</span></button>
-              </div>
+             <div className={`fixed bottom-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-6 flex justify-between items-end transition-all duration-300 md:hidden ${viewMode==='mobile'?'w-full max-w-md left-1/2 -translate-x-1/2':'w-full left-0'}`}>
+                 <button onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'overview' ? 'text-indigo-600' : 'text-gray-400'}`}><LayoutGrid size={24}/><span className="text-[10px]">ภาพรวม</span></button>
+                 <button onClick={() => setActiveTab('transactions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-gray-400'}`}><List size={24}/><span className="text-[10px]">รายการ</span></button>
+                 <div className="relative -top-6"><button onClick={() => setFormData({_mode: 'type_select'})} className="w-14 h-14 bg-slate-900 rounded-full text-white shadow-xl flex items-center justify-center transform active:scale-95"><PlusIcon size={28}/></button></div>
+                 <button onClick={() => setActiveTab('data')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'data' ? 'text-indigo-600' : 'text-gray-400'}`}><Database size={24}/><span className="text-[10px]">ข้อมูล</span></button>
+                 <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'settings' ? 'text-indigo-600' : 'text-gray-400'}`}><Settings size={24}/><span className="text-[10px]">ตั้งค่า</span></button>
+             </div>
           </main>
        </div>
 
@@ -1298,9 +1264,9 @@ export default function App() {
           portfolios={portfolios}
           showCatFloat={showCatFloat}
           setShowCatFloat={setShowCatFloat}
-          assetList={assetList}
+          assetList={useMemo(() => [...new Set(transactions.filter(t => t.type === 'investment').map(t => t.assetName).filter(Boolean))], [transactions])}
           partners={partners}
-          partnerList={partnerList}
+          partnerList={useMemo(() => [...new Set(transactions.map(t => t.partyName).filter(Boolean)), ...partners.map(p => p.name)], [transactions, partners])}
        />
        
        <PartnerModal isOpen={showPartnerModal} onClose={() => setShowPartnerModal(false)} formData={partnerFormData} setFormData={setPartnerFormData} handleSave={handleSavePartner} />
@@ -1310,36 +1276,36 @@ export default function App() {
        
        {showTransferModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-              <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
-                  <h3 className="font-bold text-lg text-gray-800 dark:text-white">{transferFormData.type==='transfer'?'โอนเงิน':transferFormData.type==='deposit'?'ฝากเงิน':'ถอนเงิน'}</h3>
-                  
-                  {transferFormData.type === 'transfer' && (
-                     <div className="flex items-center gap-2">
-                        <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
-                           <option value="">ต้นทาง</option>
-                           {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-                        </select>
-                        <ArrowRightLeft size={16} className="text-gray-400"/>
-                        <select value={transferFormData.toId} onChange={e=>setTransferFormData({...transferFormData, toId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
-                           <option value="">ปลายทาง</option>
-                           {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-                        </select>
-                     </div>
-                  )}
-                  {['deposit','withdraw'].includes(transferFormData.type) && (
-                     <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="w-full bg-gray-50 dark:bg-gray-800 p-3 rounded-xl text-gray-800 dark:text-white">
-                           <option value="">เลือกบัญชี</option>
-                           {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-                     </select>
-                  )}
+             <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
+                 <h3 className="font-bold text-lg text-gray-800 dark:text-white">{transferFormData.type==='transfer'?'โอนเงิน':transferFormData.type==='deposit'?'ฝากเงิน':'ถอนเงิน'}</h3>
+                 
+                 {transferFormData.type === 'transfer' && (
+                    <div className="flex items-center gap-2">
+                       <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
+                          <option value="">ต้นทาง</option>
+                          {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+                       </select>
+                       <ArrowRightLeft size={16} className="text-gray-400"/>
+                       <select value={transferFormData.toId} onChange={e=>setTransferFormData({...transferFormData, toId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
+                          <option value="">ปลายทาง</option>
+                          {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+                       </select>
+                    </div>
+                 )}
+                 {['deposit','withdraw'].includes(transferFormData.type) && (
+                    <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="w-full bg-gray-50 dark:bg-gray-800 p-3 rounded-xl text-gray-800 dark:text-white">
+                          <option value="">เลือกบัญชี</option>
+                          {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                 )}
 
-                  <input type="number" placeholder="จำนวนเงิน" value={transferFormData.amount||''} onChange={e=>setTransferFormData({...transferFormData, amount:parseFloat(e.target.value)})} className="w-full text-3xl font-bold bg-transparent border-b p-2 outline-none text-gray-800 dark:text-white"/>
-                  
-                  <div className="flex gap-2">
-                     <button onClick={() => setShowTransferModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-300">ยกเลิก</button>
-                     <button onClick={handleQuickTransfer} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">ยืนยัน</button>
-                  </div>
-              </div>
+                 <input type="number" placeholder="จำนวนเงิน" value={transferFormData.amount||''} onChange={e=>setTransferFormData({...transferFormData, amount:parseFloat(e.target.value)})} className="w-full text-3xl font-bold bg-transparent border-b p-2 outline-none text-gray-800 dark:text-white"/>
+                 
+                 <div className="flex gap-2">
+                    <button onClick={() => setShowTransferModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-300">ยกเลิก</button>
+                    <button onClick={handleQuickTransfer} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">ยืนยัน</button>
+                 </div>
+             </div>
           </div>
        )}
     </div>
