@@ -177,14 +177,14 @@ const TransactionFormModal = memo(({
              
              <div className="flex-1 overflow-y-auto p-6 space-y-5">
                  {['income', 'expense'].includes(formData.type) && (
-                     <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-4">
-                         <button onClick={() => setFormData(prev => ({...prev, paymentType: 'cash'}))} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${formData.paymentType==='cash' ? 'bg-white dark:bg-gray-700 shadow text-indigo-600' : 'text-gray-500'}`}>
-                             <Banknote size={16}/> {formData.type==='income' ? 'ได้รับเงินเลย' : 'จ่ายทันที'}
-                         </button>
-                         <button onClick={() => setFormData(prev => ({...prev, paymentType: 'credit'}))} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${formData.paymentType==='credit' ? 'bg-white dark:bg-gray-700 shadow text-orange-600' : 'text-gray-500'}`}>
-                             <Clock size={16}/> {formData.type==='income' ? 'ค้างรับ (เครดิต)' : 'ติดไว้ก่อน (เครดิต)'}
-                         </button>
-                     </div>
+                   <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-4">
+                       <button onClick={() => setFormData(prev => ({...prev, paymentType: 'cash'}))} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${formData.paymentType==='cash' ? 'bg-white dark:bg-gray-700 shadow text-indigo-600' : 'text-gray-500'}`}>
+                           <Banknote size={16}/> {formData.type==='income' ? 'ได้รับเงินเลย' : 'จ่ายทันที'}
+                       </button>
+                       <button onClick={() => setFormData(prev => ({...prev, paymentType: 'credit'}))} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${formData.paymentType==='credit' ? 'bg-white dark:bg-gray-700 shadow text-orange-600' : 'text-gray-500'}`}>
+                           <Clock size={16}/> {formData.type==='income' ? 'ค้างรับ (เครดิต)' : 'ติดไว้ก่อน (เครดิต)'}
+                       </button>
+                   </div>
                  )}
 
                  {formData.type === 'investment' ? (
@@ -446,7 +446,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState('mobile');
   const [fontSizeLevel, setFontSizeLevel] = useState(1); 
   const [authError, setAuthError] = useState(null);
-  
+   
   const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [partners, setPartners] = useState([]);
@@ -455,7 +455,7 @@ export default function App() {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [reportMonth, setReportMonth] = useState(new Date()); 
-  
+   
   const [modalMode, setModalMode] = useState('none');
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showCatFloat, setShowCatFloat] = useState(false);
@@ -547,7 +547,7 @@ export default function App() {
 
   const handleSaveTransaction = async (data) => {
     if (!user || (!data.amount && data.type !== 'investment')) return;
-    
+     
     let finalAmount = Number(data.amount);
     if (data.type === 'investment' && data.pricePerUnit && data.quantity) {
         const raw = Number(data.pricePerUnit) * Number(data.quantity);
@@ -633,7 +633,7 @@ export default function App() {
   const handleQuickTransfer = async () => {
     if(!user || !transferFormData.amount) return;
     const amount = Number(transferFormData.amount);
-    
+     
     const payload = {
        type: transferFormData.type,
        amount: amount,
@@ -646,7 +646,7 @@ export default function App() {
        docNo: generateDocNo('transfer', new Date().toISOString().split('T')[0]),
        createdAt: new Date()
     };
-    
+     
     try {
        await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'transactions'), payload);
        
@@ -712,9 +712,9 @@ export default function App() {
              </div>
              <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm" onClick={e=>e.stopPropagation()}>
                  <div className="grid grid-cols-3 gap-2 text-center">
-                      <div><span className="text-[10px] text-emerald-400 block">รายรับ</span><span className="font-bold text-sm text-emerald-300">+{daySummary.inc.toLocaleString()}</span></div>
-                      <div className="border-l border-white/10"><span className="text-[10px] text-rose-400 block">รายจ่าย</span><span className="font-bold text-sm text-rose-300">-{daySummary.exp.toLocaleString()}</span></div>
-                      <div className="border-l border-white/10"><span className="text-[10px] text-amber-400 block">ลงทุน</span><span className="font-bold text-sm text-amber-300">{daySummary.inv.toLocaleString()}</span></div>
+                     <div><span className="text-[10px] text-emerald-400 block">รายรับ</span><span className="font-bold text-sm text-emerald-300">+{daySummary.inc.toLocaleString()}</span></div>
+                     <div className="border-l border-white/10"><span className="text-[10px] text-rose-400 block">รายจ่าย</span><span className="font-bold text-sm text-rose-300">-{daySummary.exp.toLocaleString()}</span></div>
+                     <div className="border-l border-white/10"><span className="text-[10px] text-amber-400 block">ลงทุน</span><span className="font-bold text-sm text-amber-300">{daySummary.inv.toLocaleString()}</span></div>
                  </div>
              </div>
           </div>
@@ -768,8 +768,8 @@ export default function App() {
                          <p className="text-xs font-bold text-gray-400 uppercase">เงินสดและบัญชี</p>
                          {accounts.filter(a => a.type !== 'credit').map(a => (
                              <div key={a.id} className="flex justify-between text-sm">
-                                 <span>{a.name}</span>
-                                 <span className="font-bold text-emerald-600">฿{a.balance.toLocaleString()}</span>
+                                     <span>{a.name}</span>
+                                     <span className="font-bold text-emerald-600">฿{a.balance.toLocaleString()}</span>
                              </div>
                          ))}
                          <div className="border-t border-dashed my-2"></div>
@@ -1231,8 +1231,13 @@ export default function App() {
 
           <main className={`flex-1 transition-all duration-300 ${viewMode === 'mobile' ? 'max-w-md mx-auto bg-white dark:bg-gray-900 shadow-2xl min-h-screen relative pb-24' : 'md:ml-64 p-8'}`}>
              <div className={`sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800 ${viewMode==='desktop'?'hidden md:flex bg-transparent border-none':''}`}>
-                 <div className="flex items-center gap-2 md:hidden"><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div><h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
-                 <div className="flex gap-2"><button onClick={() => setViewMode(v => v === 'mobile' ? 'desktop' : 'mobile')} className="p-2 text-gray-400 hover:text-indigo-600 hidden md:block"><Monitor size={20}/></button><button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} className="p-2 text-gray-400 hover:text-indigo-600"><Moon size={20}/></button></div>
+                 <div className={`flex items-center gap-2 ${viewMode === 'desktop' ? 'md:hidden' : ''}`}><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div><h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
+                 <div className="flex gap-2">
+                     <button onClick={() => setViewMode(v => v === 'mobile' ? 'desktop' : 'mobile')} className="p-2 text-gray-400 hover:text-indigo-600 hidden md:block"><Monitor size={20}/></button>
+                     <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} className="p-2 text-gray-400 hover:text-indigo-600">
+                        {theme === 'light' ? <Moon size={20}/> : <Sun size={20}/>}
+                     </button>
+                 </div>
              </div>
 
              <div className={`${viewMode==='mobile'?'p-4':'mt-4'}`}>
@@ -1243,7 +1248,7 @@ export default function App() {
                  {activeTab === 'settings' && <SettingsView />}
              </div>
 
-             <div className={`fixed bottom-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-6 flex justify-between items-end transition-all duration-300 md:hidden ${viewMode==='mobile'?'w-full max-w-md left-1/2 -translate-x-1/2':'w-full left-0'}`}>
+             <div className={`fixed bottom-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-6 flex justify-between items-end transition-all duration-300 ${viewMode === 'desktop' ? 'md:hidden' : ''} ${viewMode==='mobile'?'w-full max-w-md left-1/2 -translate-x-1/2':'w-full left-0'}`}>
                  <button onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'overview' ? 'text-indigo-600' : 'text-gray-400'}`}><LayoutGrid size={24}/><span className="text-[10px]">ภาพรวม</span></button>
                  <button onClick={() => setActiveTab('transactions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-gray-400'}`}><List size={24}/><span className="text-[10px]">รายการ</span></button>
                  <div className="relative -top-6"><button onClick={() => setFormData({_mode: 'type_select'})} className="w-14 h-14 bg-slate-900 rounded-full text-white shadow-xl flex items-center justify-center transform active:scale-95"><PlusIcon size={28}/></button></div>
@@ -1276,36 +1281,36 @@ export default function App() {
        
        {showTransferModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-             <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
-                 <h3 className="font-bold text-lg text-gray-800 dark:text-white">{transferFormData.type==='transfer'?'โอนเงิน':transferFormData.type==='deposit'?'ฝากเงิน':'ถอนเงิน'}</h3>
-                 
-                 {transferFormData.type === 'transfer' && (
-                    <div className="flex items-center gap-2">
-                       <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
-                          <option value="">ต้นทาง</option>
-                          {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-                       </select>
-                       <ArrowRightLeft size={16} className="text-gray-400"/>
-                       <select value={transferFormData.toId} onChange={e=>setTransferFormData({...transferFormData, toId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
-                          <option value="">ปลายทาง</option>
-                          {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-                       </select>
-                    </div>
-                 )}
-                 {['deposit','withdraw'].includes(transferFormData.type) && (
-                    <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="w-full bg-gray-50 dark:bg-gray-800 p-3 rounded-xl text-gray-800 dark:text-white">
-                          <option value="">เลือกบัญชี</option>
-                          {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                 )}
+              <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
+                  <h3 className="font-bold text-lg text-gray-800 dark:text-white">{transferFormData.type==='transfer'?'โอนเงิน':transferFormData.type==='deposit'?'ฝากเงิน':'ถอนเงิน'}</h3>
+                  
+                  {transferFormData.type === 'transfer' && (
+                     <div className="flex items-center gap-2">
+                        <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
+                           <option value="">ต้นทาง</option>
+                           {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                        <ArrowRightLeft size={16} className="text-gray-400"/>
+                        <select value={transferFormData.toId} onChange={e=>setTransferFormData({...transferFormData, toId:e.target.value})} className="flex-1 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg text-gray-800 dark:text-white">
+                           <option value="">ปลายทาง</option>
+                           {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                     </div>
+                  )}
+                  {['deposit','withdraw'].includes(transferFormData.type) && (
+                     <select value={transferFormData.fromId} onChange={e=>setTransferFormData({...transferFormData, fromId:e.target.value})} className="w-full bg-gray-50 dark:bg-gray-800 p-3 rounded-xl text-gray-800 dark:text-white">
+                           <option value="">เลือกบัญชี</option>
+                           {accounts.filter(a=>a.type!=='credit').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+                     </select>
+                  )}
 
-                 <input type="number" placeholder="จำนวนเงิน" value={transferFormData.amount||''} onChange={e=>setTransferFormData({...transferFormData, amount:parseFloat(e.target.value)})} className="w-full text-3xl font-bold bg-transparent border-b p-2 outline-none text-gray-800 dark:text-white"/>
-                 
-                 <div className="flex gap-2">
-                    <button onClick={() => setShowTransferModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-300">ยกเลิก</button>
-                    <button onClick={handleQuickTransfer} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">ยืนยัน</button>
-                 </div>
-             </div>
+                  <input type="number" placeholder="จำนวนเงิน" value={transferFormData.amount||''} onChange={e=>setTransferFormData({...transferFormData, amount:parseFloat(e.target.value)})} className="w-full text-3xl font-bold bg-transparent border-b p-2 outline-none text-gray-800 dark:text-white"/>
+                  
+                  <div className="flex gap-2">
+                     <button onClick={() => setShowTransferModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-500 dark:text-gray-300">ยกเลิก</button>
+                     <button onClick={handleQuickTransfer} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">ยืนยัน</button>
+                  </div>
+              </div>
           </div>
        )}
     </div>
