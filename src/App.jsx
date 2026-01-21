@@ -443,15 +443,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [theme, setTheme] = useState('light');
-  
-  // --- Updated: Initialize viewMode based on screen width ---
-  const [viewMode, setViewMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 768 ? 'desktop' : 'mobile';
-    }
-    return 'mobile';
-  });
-
   const [fontSizeLevel, setFontSizeLevel] = useState(1); 
   const [authError, setAuthError] = useState(null);
    
@@ -1229,43 +1220,41 @@ export default function App() {
 
   {/* Only returning App structure, Modals are rendered outside */}
   return (
-    <div className={`min-h-screen font-sans antialiased ${theme} bg-gray-50 dark:bg-gray-950 text-slate-800 dark:text-gray-100`}>
-       <div className={`flex flex-col md:flex-row min-h-screen transition-all`}>
-          <aside className={`hidden md:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 p-6 fixed h-full z-30 ${viewMode==='mobile'?'md:hidden':''}`}>
-              <div className="flex items-center gap-3 mb-10"><div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">C</div><h1 className="font-bold text-xl text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
-              <nav className="space-y-2 flex-1">{[{id: 'overview', icon: LayoutGrid, label: 'ภาพรวม'}, {id: 'transactions', icon: List, label: 'รายการ'}, {id: 'data', icon: Database, label: 'ข้อมูล'}, {id: 'reports', icon: BarChart3, label: 'สรุปผล'}, {id: 'settings', icon: Settings, label: 'ตั้งค่า'}].map(i => <button key={i.id} onClick={() => setActiveTab(i.id)} className={`w-full flex items-center gap-3 p-3 rounded-xl font-bold transition-all ${activeTab===i.id ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}><i.icon size={20}/> {i.label}</button>)}</nav>
-              <button onClick={() => setFormData({_mode: 'type_select'})} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2"><PlusIcon size={20}/> ทำรายการ</button>
-          </aside>
-
-          <main className={`flex-1 transition-all duration-300 ${viewMode === 'mobile' ? 'w-full md:max-w-md mx-auto bg-white dark:bg-gray-900 shadow-2xl min-h-screen relative pb-24' : 'md:ml-64 p-8'}`}>
-             <div className={`sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800 ${viewMode==='desktop'?'hidden md:flex bg-transparent border-none':''}`}>
-                 <div className={`flex items-center gap-2 ${viewMode === 'desktop' ? 'md:hidden' : ''}`}><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div><h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1></div>
-                 <div className="flex gap-2">
-                     <button onClick={() => setViewMode(v => v === 'mobile' ? 'desktop' : 'mobile')} className="p-2 text-gray-400 hover:text-indigo-600 hidden md:block"><Monitor size={20}/></button>
-                     <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} className="p-2 text-gray-400 hover:text-indigo-600">
-                        {theme === 'light' ? <Moon size={20}/> : <Sun size={20}/>}
-                     </button>
-                 </div>
+    <div className={`min-h-screen font-sans antialiased ${theme} bg-gray-100 dark:bg-gray-950 flex justify-center`}>
+       {/* Main Phone Container */}
+       <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl min-h-screen relative flex flex-col">
+          
+          {/* Header */}
+          <div className="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">C</div>
+                <h1 className="font-bold text-lg text-gray-800 dark:text-white">Chanpha v2.8</h1>
              </div>
+             <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} className="p-2 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                {theme === 'light' ? <Moon size={20}/> : <Sun size={20}/>}
+             </button>
+          </div>
 
-             <div className={`${viewMode==='mobile'?'p-4':'mt-4'}`}>
-                 {activeTab === 'overview' && <OverviewView />}
-                 {activeTab === 'transactions' && <TransactionsView />}
-                 {activeTab === 'data' && <DataView />}
-                 {activeTab === 'reports' && <ReportsView />}
-                 {activeTab === 'settings' && <SettingsView />}
-             </div>
+          {/* Main Content Area */}
+          <div className="flex-1 p-4 pb-24">
+             {activeTab === 'overview' && <OverviewView />}
+             {activeTab === 'transactions' && <TransactionsView />}
+             {activeTab === 'data' && <DataView />}
+             {activeTab === 'reports' && <ReportsView />}
+             {activeTab === 'settings' && <SettingsView />}
+          </div>
 
-             <div className={`fixed bottom-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-6 flex justify-between items-end transition-all duration-300 ${viewMode === 'desktop' ? 'md:hidden' : ''} ${viewMode==='mobile'?'w-full max-w-md left-1/2 -translate-x-1/2':'w-full left-0'}`}>
-                 <button onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'overview' ? 'text-indigo-600' : 'text-gray-400'}`}><LayoutGrid size={24}/><span className="text-[10px]">ภาพรวม</span></button>
-                 <button onClick={() => setActiveTab('transactions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-gray-400'}`}><List size={24}/><span className="text-[10px]">รายการ</span></button>
-                 <div className="relative -top-6"><button onClick={() => setFormData({_mode: 'type_select'})} className="w-14 h-14 bg-slate-900 rounded-full text-white shadow-xl flex items-center justify-center transform active:scale-95"><PlusIcon size={28}/></button></div>
-                 <button onClick={() => setActiveTab('data')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'data' ? 'text-indigo-600' : 'text-gray-400'}`}><Database size={24}/><span className="text-[10px]">ข้อมูล</span></button>
-                 <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'settings' ? 'text-indigo-600' : 'text-gray-400'}`}><Settings size={24}/><span className="text-[10px]">ตั้งค่า</span></button>
-             </div>
-          </main>
+          {/* Bottom Navigation */}
+          <div className="fixed bottom-0 w-full max-w-md z-40 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 pb-safe pt-2 px-6 flex justify-between items-end">
+             <button onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'overview' ? 'text-indigo-600' : 'text-gray-400'}`}><LayoutGrid size={24}/><span className="text-[10px]">ภาพรวม</span></button>
+             <button onClick={() => setActiveTab('transactions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-gray-400'}`}><List size={24}/><span className="text-[10px]">รายการ</span></button>
+             <div className="relative -top-6"><button onClick={() => setFormData({_mode: 'type_select'})} className="w-14 h-14 bg-slate-900 rounded-full text-white shadow-xl flex items-center justify-center transform active:scale-95"><PlusIcon size={28}/></button></div>
+             <button onClick={() => setActiveTab('data')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'data' ? 'text-indigo-600' : 'text-gray-400'}`}><Database size={24}/><span className="text-[10px]">ข้อมูล</span></button>
+             <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'settings' ? 'text-indigo-600' : 'text-gray-400'}`}><Settings size={24}/><span className="text-[10px]">ตั้งค่า</span></button>
+          </div>
        </div>
 
+       {/* Modals are placed here so they are within the theme wrapper but outside layout flow */}
        <TransactionFormModal 
           isOpen={!!formData._mode} 
           onClose={() => setFormData({})}
